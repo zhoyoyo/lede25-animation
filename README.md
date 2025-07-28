@@ -1,6 +1,6 @@
 # Four ways of animating an SVG
 
-Let's make the SVG graphic we created during the [last class](https://github.com/zhoyoyo/lede24-svg-with-d3) _move_.
+Let's make the SVG graphic we created during the [last class](https://github.com/zhoyoyo/lede-svg-with-d3) _move_.
 
 We will do three things with four examples:
 
