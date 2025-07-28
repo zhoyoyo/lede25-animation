@@ -52,49 +52,58 @@ We can animate certain attributes of an SVG graphic with CSS animation, but it d
 
 ## Method 2: Javascript Animation -- D3 Transition
 
-To change the color of the squares, we need to rewrite the script that assigns fill color to the squares by chaining two style assignments with a [d3-traisition](https://github.com/d3/d3-transition) function in between. 
+[d3-traisition](https://github.com/d3/d3-transition) gives us better control of animating from state to state for targeted DOM elements. 
 
-Add the following Javascript code after you set the x, y, width, and height attributes of the `days` variable:
+For example, the colors of the squares in our example are connected to the `Happiness` level from the data. If we want to animate their colors specific to the underlying data, we can do that with `d3-transition`. 
+
+Let's say we want all the squares to start from the same grey colors and then transition to data-specific Hapiness levels. We can achieve that by assigning the fill color to the squares by twice, with a [d3-traisition](https://github.com/d3/d3-transition) function in between. 
+
+Add the following Javascript code after you set the x, y, width, and height attributes of the `individualCharts` variable:
 
 
 ```
 // start with grey squares, change the "fill" value
 individualCharts.style('fill','lightgrey')
 
-const greyToColor = function(){
+const showSquareData = function(){
     
     individualCharts
         .transition().duration(2000)
         .style('fill', d=> {
             if (d.Happiness == '1') {return 'black'}
-            else if (d.Happiness == '2') {return 'lightgrey'}
+            else if (d.Happiness == '2') {return 'grey'}
             else {return 'gold'}
         })
-        .on('end', colorToGrey)
+        .on('end', hideSquareData)
 
 }
 
-const colorToGrey = function(){
+const hideSquareData = function(){
 
     individualCharts
         .transition()
         .duration(2000)
         .style('fill','lightgrey')
-        .on('end', greyToColor)
+        .on('end', showSquareData)
 
 }
 
 // run the animation.
-greyToColor();
+showSquareData();
 
 ```
 
 Don't forget to delete or comment out the CSS animation you created before. Otherwise they might not work in sync with each other. 
 
-##### 💦 Exercise Interlude 💦 
+##### 💦 Exercise Interlude 1 💦 
 *Animate attributes of an SVG that are not accessible in CSS* 
 
-What if we want to animate the width and height of an SVG rectangle? Take 10 minutes to see if you can figure it out yourself. 
+What if we want to animate the width and height of an SVG rectangle? Take 5 minutes to see if you can figure it out yourself. 
+
+##### 💦 Exercise Interlude 2 💦 
+*Can we update the shapes to display new data values?* 
+
+There is a column in the dataset (`Happiness_P2`) that shows the happiness level of a second person. How can we update the circle colors to make them represent that new person's happiness levels? 
 
 ##### 🔥 Make animation fancier 🔥 
 
@@ -111,57 +120,88 @@ In the `<body>` of the HTML, let's create a button above our SVG chart:
 ```
 <button id="btn">Animate!</button>
 ```
-Next, we need to bind the function that starts the animation to the button in Javascript. You can achieve this in either D3 or raw Javascript. Add this after your `colorToGrey()`function declaration, and comment out your call `greyToColor()`: 
+Next, we need to bind the function that starts the animation to the button in Javascript. You can achieve this in either D3 or raw Javascript. Add this after your `hideSquareData()`function declaration, and comment out your call `showSquareData()`: 
 
 ```
-// greyToColor();
+// showSquareData();
 
 // Create the Click event with D3: 
-d3.select('button#btn').on('click', greyToColor)
+d3.select('button#btn').on('click', showSquareData)
 ```
 
-We can further split the animations into two steps: 
+We can further split the animations into three steps: 
 1. Animate the width and height to show the squares
-2. Animate the colors
+2. Show the happiness level of the first person
+3. Show the hapiness level of the second person
 
-We can achieve this by creating two additional buttons below the button you just created: 
+We can achieve this by replacing the current button with three buttons below the button: 
 
 ```
-<!-- Add two lines below button#btn:  -->
-<button id="btn1">Show days</button>
-<button id="btn2">Show emotions</button>
+<!-- <button id="btn">Animate!</button> -->
+
+<!-- Add these buttons to the page:  -->
+<button id="btn1">Show 100 days</button>
+<button id="btn2">Person 1 emotions</button>
+<button id="btn3">Person 2 emotions</button>
 
 ```
 
 And adding the two functions and binding them to the buttons inside Javascript:
 
 ```
-const showDays = function() {
+const showSquares = function() {
 
-    days
+    individualCharts
         .transition()
         .duration(2000)
         .attr('width', gridSize)
         .attr('height', gridSize)
 }
 
-const showEmotions = function() {
-    days
+const showEmotions = function(personID) {
+    individualCharts
         .transition()
         .duration(2000)
         .style('fill', d=> {
-        if (d.Happiness == '1') {return 'black'}
-        else if (d.Happiness == '2') {return 'lightgrey'}
+        if (d[personID] == '1') {return 'black'}
+        else if (d[personID] == '2') {return 'lightgrey'}
         else {return 'gold'}
         })
 }
 
-d3.select('button#btn1').on('click', showDays)
-d3.select('button#btn2').on('click', showEmotions)
+d3.select('button#btn1').on('click', showSquares)
+
+d3.select('button#btn2').on('click', function(){
+    showEmotions('Happiness')
+})
+
+d3.select('button#btn3').on('click', function(){
+    showEmotions('Happiness_P2')
+})
 
 ```
 
-As you can tell, clicking a button to trigger an animation isn't the most intuitive user interaction and is prone to errors. That brings us to... 
+🤔 Graphic changes are subtle to readers. It's common practice to enhance it with a clear text indication. We can do that inside `click` event callback functions by adding a line. 
+
+Add this to the end of the `ShowSquares` function:
+
+```
+d3.select("p").html('Here are the 100 days.")
+
+```
+
+Add this to the end of the `showEmotions` function:
+
+```
+d3.select("p").html(function(personID){
+    if (personID == 'Happiness") {return "This is the emotional ups and downs of Person 1"}
+    else {return "This is the emotional ups and downs of Person 2"}
+})
+
+```
+
+
+Clicking a button to trigger an animation may hide critical information from users. That brings us to... 
 
 ## Method 4: Animation triggered by page scroll
 
@@ -174,8 +214,8 @@ First, let's set up our DOM elements to match the structure we typically see in 
     <div id="my-svg-chart"></div> <!-- Your chart -->
     <div id="text"> <!-- Your text -->
         <div class="step">1. Make the charts appear</div>
-        <div class="step">2. Change colors</div>
-        <div class="step">3. Make the chart bigger</div>
+        <div class="step">2. Show Person 1 emotions</div>
+        <div class="step">3. Show Person 2 emotions</div>
 
     </div> 
 </div>
@@ -189,7 +229,7 @@ Next we need to set up the Javascript portion of Scrollama. Let's load the scrip
 <script src="https://unpkg.com/scrollama"></script>
 ```
 
-Then, we copy and paste the Javascript code section from the example and modify it to our use. You can copy and paste this section and put it in our script: 
+Then, we copy and paste the Javascript code section from the example and modify it to our use. You can copy and paste this section and put it below the d3 code (inside the `.then()` function) in our script: 
 
 ```
 // ======================================
@@ -233,32 +273,33 @@ function handleStepEnter(response) {
     // update graphic based on step
     if (response.index == 0) {
         // 1. Make the charts appear
-        showDays()
+        showSquares()
     } else if (response.index == 1) {
-        // 2. change color
-        showEmotions()
+        // 2. Show Person 1 emotions
+        showEmotions('Happiness')
     } else if (response.index == 2) {
-        // 3. Make the chart bigger
-        enlarge()
+        // 3. Show Person 2 emotions
+        showEmotions('Happiness_P2')
     }
 }
 
 function init() {
 
-// 1. force a resize on load to ensure proper dimensions are sent to scrollama
-handleResize();
+    // 1. force a resize on load to ensure proper dimensions are sent to scrollama
+    handleResize();
 
-// 2. setup the scroller passing options
-// 		this will also initialize trigger observations
-// 3. bind scrollama event handlers (this can be chained like below)
+    // 2. bind scrollama event handlers (this can be chained like below)
 
-scroller
-    .setup({
-    step: "#scroll-content .step",
-    offset: 0.33,
-    debug: false
-    })
-    .onStepEnter(handleStepEnter);
+    scroller
+        .setup({
+        step: "#scroll-content .step",
+        offset: 0.33,
+        debug: false
+        })
+        .onStepEnter(handleStepEnter);
+
+    // 3. watch for window resizing
+    window.addEventListener('resize', handleResize);
 }
 
 // kick things off
@@ -304,9 +345,13 @@ Lastly, copy the example's CSS in the style section to `custom.css`:
 
 ```
 
-Now  you have a graphic that animates by scrolling the page.
+Now you have a graphic that animates by scrolling the page.
 
-##### 💦 Exercise Interlude 💦 
+##### 💦 Exercise Interlude 1 💦 
+*Make the graphic responsive to window resizing*
+Update the x, y, width and height attributes of the squares inside the `handleResize` function.
+
+##### 💦 Exercise Interlude 2 💦 
 *Create a photo scroll* 
 
 Use the template in the folder `/scrollama-sticky-example` to create a photo gallery. Remember to change three places:
