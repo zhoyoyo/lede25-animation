@@ -186,7 +186,7 @@ d3.select('button#btn3').on('click', function(){
 Add this to the end of the `ShowSquares` function:
 
 ```
-d3.select("p").html('Here are the 100 days.")
+d3.select("p").html("Here are the 100 days.")
 
 ```
 
@@ -194,7 +194,7 @@ Add this to the end of the `showEmotions` function:
 
 ```
 d3.select("p").html(function(personID){
-    if (personID == 'Happiness") {return "This is the emotional ups and downs of Person 1"}
+    if (personID == "Happiness") {return "This is the emotional ups and downs of Person 1"}
     else {return "This is the emotional ups and downs of Person 2"}
 })
 

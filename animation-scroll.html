@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+  <head>
+
+    <!-- some basic stuff  -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Animated SVG</title>
+
+    <!-- 
+      add your stylesheet 
+      base.css loads the basic stuff
+      you can tweak your css in custom.css
+      WARNING: the order of the stylesheets matters
+    -->
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="custom.css">
+
+    <!-- add your d3 script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <!-- add Scrollama -->
+    <script src="https://unpkg.com/scrollama"></script>
+
+    <!-- your JS code that uses d3 to manipulate data -->
+    <script>
+
+      // Step 4. load your data with d3.csv()
+      d3.csv("happiness-sample-data.csv")
+      // d3.json("happiness-sample-data.json")
+        .then(data => {
+
+          const myChart = d3
+            .select('#my-svg-chart')
+            .append('svg')
+            .attr('width', 640)
+            .attr('height', 640)
+
+          const individualCharts = myChart
+            .selectAll('rect')
+            .data(data)
+            .join('rect');
+
+          const gridSize = 20, gap = 2;
+
+          individualCharts
+            .attr('x', (d,i) => {
+              return Math.floor(i%10)*(gridSize+ gap);
+            })
+            .attr('y', (d,i) => {
+              return Math.floor(i/10)*(gridSize+ gap);
+            })
+            .attr('width', 0)
+            .attr('height', 0)
+          
+          // start with grey squares, change the "fill" value
+          individualCharts.style('fill','lightgrey')
+
+
+
+          const showSquares = function() {
+            
+            const gridSizeNew = window.innerWidth > 640 ? 50 : window.innerWidth / 12;
+
+              individualCharts
+                  .transition()
+                  .duration(200)
+                  .attr('width', gridSizeNew)
+                  .attr('height', gridSizeNew)
+
+              d3.select("p").html("Here are the 100 days.")
+
+          }
+
+          const showEmotions = function(personID) {
+
+              individualCharts
+                  .transition()
+                  .duration(200)
+                  .style('fill', d=> {
+                  if (d[personID] == '1') {return 'black'}
+                  else if (d[personID] == '2') {return 'lightgrey'}
+                  else {return 'gold'}
+                  })
+
+              d3.select("p")
+              .html(function() {
+                if (personID == "Happiness") 
+                 { return "This is the emotional ups-and-downs of Person 1"}
+                else {return "This is the emotional ups-and-downs of Person 2"}
+            })
+
+          }
+
+          // ======================================
+          // === HERE starts the scrollama code ===
+          // ======================================
+
+          // using d3 for convenience
+          const scrolly = d3.select("#scroll-content");
+          const figure = scrolly.select("#my-svg-chart");
+          const step = scrolly.selectAll(".step"); 
+
+          // initialize the scrollama
+          const scroller = scrollama();
+
+          // generic window resize listener event
+          function handleResize() {
+
+              // 1. update height of step elements
+              var stepH = Math.floor(window.innerHeight * 0.75);
+              step.style("height", stepH + "px");
+
+              var figureHeight = Math.min(window.innerHeight*0.8,640);
+              var figureMarginTop = (window.innerHeight - figureHeight) / 2;
+              
+              // 2. update the height of the chart
+              figure
+                  .style("height", figureHeight + "px")
+                  .style("top", figureMarginTop + "px");
+
+              // updating the height and width of the squares 
+              const gridSizeNew = window.innerWidth > 640 ? 50 : window.innerWidth / 12
+              
+              individualCharts
+                  .attr('x', (d,i) => {
+                    return Math.floor(i%10)*(gridSizeNew + gap);
+                  })
+                  .attr('y', (d,i) => {
+                    return Math.floor(i/10)*(gridSizeNew + gap);
+                  })
+                  .attr('width', gridSizeNew)
+                  .attr('height', gridSizeNew)
+
+
+
+              // 3. tell scrollama to update new element dimensions
+              scroller.resize();
+          }
+
+          // scrollama event handlers
+          function handleStepEnter(response) {
+
+              // add color to current step only
+              step.classed("is-active", function (d, i) {
+                  return i === response.index;
+              });
+
+              // update graphic based on step
+              if (response.index == 0) {
+                  // 1. Make the charts appear
+                  showSquares()
+              } else if (response.index == 1) {
+                  // 2. Show Person 1 emotions
+                  showEmotions('Happiness')
+              } else if (response.index == 2) {
+                  // 3. Show Person 2 emotions
+                  showEmotions('Happiness_P2')
+              }
+          }
+
+          function init() {
+
+              // 1. force a resize on load to ensure proper dimensions are sent to scrollama
+              handleResize();
+
+              // 2. bind scrollama event handlers (this can be chained like below)
+
+              scroller
+                  .setup({
+                  step: "#scroll-content .step",
+                  offset: 0.33,
+                  debug: false
+                  })
+                  .onStepEnter(handleStepEnter);
+
+              // 3. watch for window resizing
+              window.addEventListener('resize', handleResize);
+          }
+
+          // kick things off
+          init();
+
+
+
+          
+
+        })
+
+    </script>
+
+  </head>
+
+  <body>
+    <h1>100 days of happiness</h1>
+
+    <div id="scroll-content">  <!-- The overall container -->
+    <div id="my-svg-chart">
+      <p>100 days of happiness</p>
+    </div> <!-- Your chart -->
+    <div id="text"> <!-- Your text -->
+        <div class="step">1. Make the charts appear</div>
+        <div class="step">2. Show Person 1 emotions</div>
+        <div class="step">3. Show Person 2 emotions</div>
+
+    </div> 
+</div>
+
+
+
+  </body>
+</html>

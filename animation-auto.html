@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+  <head>
+
+    <!-- some basic stuff  -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Animated SVG</title>
+
+    <!-- 
+      add your stylesheet 
+      base.css loads the basic stuff
+      you can tweak your css in custom.css
+      WARNING: the order of the stylesheets matters
+    -->
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="custom.css">
+
+    <!-- add your d3 script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <!-- add Scrollama -->
+    <script src="https://unpkg.com/scrollama"></script>
+
+    <!-- your JS code that uses d3 to manipulate data -->
+    <script>
+
+      // Step 4. load your data with d3.csv()
+      d3.csv("happiness-sample-data.csv")
+      // d3.json("happiness-sample-data.json")
+        .then(data => {
+
+          const myChart = d3
+            .select('#my-svg-chart')
+            .append('svg')
+            .attr('width', 640)
+            .attr('height', 640)
+
+          const individualCharts = myChart
+            .selectAll('rect')
+            .data(data)
+            .join('rect');
+
+          const gridSize = 20, gap = 2;
+
+          individualCharts
+            .attr('x', (d,i) => {
+              return Math.floor(i%10)*(gridSize+ gap);
+            })
+            .attr('y', (d,i) => {
+              return Math.floor(i/10)*(gridSize+ gap);
+            })
+            .attr('width', gridSize)
+            .attr('height', gridSize)
+          
+          // start with grey squares, change the "fill" value
+          individualCharts.style('fill','lightgrey')
+
+
+
+          const showSquareData = function(){
+              
+              individualCharts
+                  .transition()
+                  .duration(2000)
+                  .style('fill', d=> {
+                      if (d.Happiness == '1') {return 'black'}
+                      else if (d.Happiness == '2') {return 'grey'}
+                      else {return 'gold'}
+                  })
+                  .on('end', hideSquareData)
+
+          }
+
+          const hideSquareData = function(){
+
+              individualCharts
+                  .transition()
+                  .duration(2000)
+                  .style('fill','lightgrey')
+                  .on('end', showSquareData)
+
+          }
+
+          // run the animation.
+          showSquareData();
+
+
+          
+
+        })
+
+    </script>
+
+  </head>
+  <body>
+    <h1>100 days of happiness</h1>
+    <!-- putting your buttons here -->
+    <div id="my-svg-chart">
+      <p>100 days of happiness</p>
+    </div>
+
+
+  </body>
+</html>

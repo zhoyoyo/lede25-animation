@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+  <head>
+
+    <!-- some basic stuff  -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Animated SVG</title>
+
+    <!-- 
+      add your stylesheet 
+      base.css loads the basic stuff
+      you can tweak your css in custom.css
+      WARNING: the order of the stylesheets matters
+    -->
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="custom.css">
+
+    <!-- add your d3 script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <!-- add Scrollama -->
+    <script src="https://unpkg.com/scrollama"></script>
+
+    <!-- your JS code that uses d3 to manipulate data -->
+    <script>
+
+      // Step 4. load your data with d3.csv()
+      d3.csv("happiness-sample-data.csv")
+      // d3.json("happiness-sample-data.json")
+        .then(data => {
+
+          const myChart = d3
+            .select('#my-svg-chart')
+            .append('svg')
+            .attr('width', 640)
+            .attr('height', 640)
+
+          const individualCharts = myChart
+            .selectAll('rect')
+            .data(data)
+            .join('rect');
+
+          const gridSize = 20, gap = 2;
+
+          individualCharts
+            .attr('x', (d,i) => {
+              return Math.floor(i%10)*(gridSize+ gap);
+            })
+            .attr('y', (d,i) => {
+              return Math.floor(i/10)*(gridSize+ gap);
+            })
+            .attr('width', 0)
+            .attr('height', 0)
+          
+          // start with grey squares, change the "fill" value
+          individualCharts.style('fill','lightgrey')
+
+          // Create the Click event with D3: 
+          // d3.select('button#btn')
+          // .on('click', showSquareData)
+
+
+          const showSquares = function() {
+             
+              individualCharts
+                  .transition()
+                  .duration(200)
+                  .attr('width', gridSize)
+                  .attr('height', gridSize)
+
+              d3.select("p").html("Here are the 100 days.")
+
+          }
+
+          const showEmotions = function(personID) {
+              individualCharts
+                  .transition()
+                  .duration(200)
+                  .style('fill', d=> {
+                  if (d[personID] == '1') {return 'black'}
+                  else if (d[personID] == '2') {return 'lightgrey'}
+                  else {return 'gold'}
+                  })
+
+              d3.select("p")
+              .html(function() {
+                if (personID == "Happiness") 
+                 { return "This is the emotional ups and downs of Person 1"}
+                else {return "This is the emotional ups and downs of Person 2"}
+            })
+
+          }
+
+          d3.select('button#btn1')
+            .on('click', showSquares)
+
+          d3.select('button#btn2')
+            .on('click', function(){
+              showEmotions('Happiness')
+          })
+
+          d3.select('button#btn3')
+            .on('click', function(){
+              showEmotions('Happiness_P2')
+          })
+
+
+          
+
+        })
+
+    </script>
+
+  </head>
+
+  <body>
+    <h1>100 days of happiness</h1>
+    <p></p>
+    <!-- putting your buttons here -->
+    <!-- <button id="btn">Animate!</button> -->
+
+    <!-- Add these buttons to the page:  -->
+    <button id="btn1">Show 100 days</button>
+    <button id="btn2">Person 1 emotions</button>
+    <button id="btn3">Person 2 emotions</button>
+
+
+    <div id="my-svg-chart"></div> 
+
+
+
+  </body>
+</html>
